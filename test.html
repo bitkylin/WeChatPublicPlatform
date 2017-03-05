@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="http://www.sanqqq.com/test/item/sc-2.js" type="text/javascript"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <link rel="stylesheet" href="http://www.sanqqq.com/css/teststyle.css" />
+    <link rel="stylesheet" type="text/css" media="screen and (max-device-width: 600px)" href="http://www.sanqqq.com/css/tinyteststyle.css" />
+    <style>
+        .itemchose {
+            max-width: 800px;
+            width: 90%;
+            display: block;
+            margin: 20px 5% 20px 5%;
+            background-color: lightblue;
+            height: 50px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        h1, #index {
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            margin: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+
+        #question {
+            margin-left: 10px;
+        }
+
+        #selectitem {
+            text-align: center;
+            width: 100%;
+            line-height: 60px;
+        }
+
+        .wxgzh {
+            color: gray;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            margin: 0;
+        }
+
+        @media screen and (min-device-width: 600px) {
+            h1 {
+                font-size: 48px;
+                margin-top: 10px;
+            }
+        }
+    </style>
+    <script type="text/javascript" src="http://www.sanqqq.com/js/jquery.min.js"></script>
+    <script type="text/javascript" src="http://www.sanqqq.com/test/getopid.aspx"></script>
+    <script type="text/javascript">
+        var kwid = "sctz1";
+        var testcount = 50;
+        var title = "诗词大会50句挑战";
+        var testitems = new Array();
+        var randstr = ""
+        var correctCount = 0;
+        var errCount = 0;
+        var testres = [];
+        for (var i = 0; i < testcount; i++) {
+            var count = tests.length;
+            var index = Math.floor(Math.random() * 10000) % count;
+            randstr = randstr + index + ",";
+            testitems.push(tests[index]);
+            tests.splice(index, 1);
+
+        }
+        var curindex = 0;
+        $("docucment").ready(function () {
+            // alert(testitems.length);
+
+            document.title = title;
+            showitem();
+            if (document.domain.indexOf("sanqqq.com") > 0) {
+                document.domain = "sanqqq.com"
+            }
+        });
+        function showitem() {
+            $("#index").html((curindex + 1) + "/" + testitems.length);
+            var testobj = testitems[curindex];
+            $("#question").html((curindex + 1) + "、" + testobj["q"]);
+            var arritem = testobj["i"];
+            var tcount = arritem.length;
+            var html = "";
+            for (var i = 0; i < tcount; i++) {
+                var count = arritem.length;
+                var index = Math.floor(Math.random() * 10000) % count;
+
+
+                html = html + "<input class=\"itemchose\" type=\"button\" value=\"" + arritem[index] + "\" onclick='checkres(this)' />";
+                arritem.splice(index, 1);
+
+            }
+            $("#selectitem").html(html);
+
+        }
+        function checkres(obj) {
+            var testanswer = $.trim(obj.value);
+            var testobj = testitems[curindex];
+            var key = $.trim(testobj["k"]);
+            var num = testobj["n"];
+            testres.push({ "n": num, "a": testanswer });
+            if (key == testanswer) {
+                correctCount++;
+            }
+            if (curindex < testcount - 1) {
+                curindex++;
+                showitem();
+            } else {
+                $("#selectitem").html("");
+                // showHint("你得了"+correctCount/testcount*100+"分！")
+                var totalScore =  Math.floor(correctCount / testcount * 100);
+                document.title = title + "：我得了" + totalScore + "分。你也挑战一把吧！";
+                if (totalScore >= 80) {
+                    showHint("你在" + title + "得了 <span style='color:red'><b>" + totalScore + "</b></span> 分。很棒！<br/>点右上角“<span style='color:red'><b>...</b></span>”分享朋友圈后，耐心等待10秒显示答案！<br/>你成绩不错，可以继续挑战下一级。");
+					
+					setTimeout(function () {$("#nextlevel").show();}, 9000);
+                } else {
+                    showHint("你在" + title + "得了 <span style='color:red'><b>" + totalScore + "</b></span> 分。加油！<br/>点右上角“<span style='color:red'><b>...</b></span>”分享朋友圈后，耐心等待10秒显示答案！");
+                }
+                $.post("http://www.sanqqq.com/test/mingci.aspx", { kw: kwid, openid: openid, appid: "ywdjl", score: totalScore }, function (data) {
+
+				});
+            }
+        }
+        function showAnswers() {
+			
+            var html = "";
+            for (var i = 0; i < testitems.length; i++) {
+                var testobj = testitems[i];
+                var key = $.trim(testobj["k"]);
+                var question = testobj["q"];
+
+
+                var answer = $.trim(testres[i]["a"]);
+                if (key == answer) {
+
+                    html = html + "<div>" + (i + 1) + "、" + question.replace("（", "").replace("）", "（" + answer + "）") + "√</div>"
+                } else {
+                    html = html + "<div>" + (i + 1) + "、" + question.replace("（", "").replace("）", "（<span style='color:red'>" + answer + "</span>）") + "X<br/>正确答案：" + key + "</div>"
+                }
+
+            }
+            var totalScore =  Math.floor(correctCount / testcount * 100);
+            $("#question").html(html);
+            $("#index").html("得分：" + totalScore + "分");
+            $("#selectitem").html("");
+
+        }
+        function showHint(msg) {
+
+            var divinfo = document.getElementById("divInfo");
+
+            var winWid = document.documentElement.clientWidth;
+            var winHeight = document.documentElement.clientHeight;
+            var divWidth = winWid * 0.8;
+            if (divWidth > 260) {
+                divWidth = 260;
+            }
+            if (divinfo == null) {
+
+                divinfo = document.createElement("div");
+
+                divinfo.style.cssText = "line-height:30px;border:1px solid greed;left:" + (winWid - divWidth) / 2 + "px;top:" + (winHeight / 2 - 45) + "px;width:" + divWidth + "px;border-radius:10px;-moz-border-radius:5px;display:none;position:fixed;padding:10px;background-color:#CCE8FF;color:black";
+                divinfo.id = "divInfo";
+                document.body.appendChild(divinfo);
+            }
+            divinfo.innerHTML = msg;
+
+            divinfo.style.display = "block";
+            setTimeout(function () {
+                divinfo.style.display = "none";
+                showAnswers();
+            }, 10000);
+
+        }
+		function gonextlevel()
+		{
+			window.location.href="ctsc1.html";
+		}
+
+    </script>
+</head>
+<body style="padding:0">
+
+    <div style="width:100%;align:center">
+        <table>
+            <tr>
+                <td><a href="http://www.sanqqq.com/go.aspx?app=YuwenRJALL"><img border=0 src="http://www.sanqqq.com/test/pic/djl80.png" width="80px" /></a></td>
+                <td><a href="http://www.sanqqq.com/go.aspx?app=YuwenRJALL"><div style="color:orange;">《语文点讲练》</div>课本点读+名师讲解+全面测练<br />安卓、苹果免费下载</a></td>
+            </tr>
+        </table>
+    </div>
+    <hr color="lightgray" style="margin:0" />
+    <div>
+        <h1>诗词大会50句挑战</h1>
+
+<div id="nextlevel" style="display:none"><input type="button"  class="itemchose" style="background-color:orange" onclick="gonextlevel()" value="继续挑战下一级"></div>
+        <div id="question"></div>
+
+        <div id="selectitem"></div>
+        <div id="index"></div>
+    </div>
+    <div class="wxgzh">
+
+        <a href="http://mp.weixin.qq.com/s?__biz=MzI0NzYwMjk3Mg==&mid=2247484619&idx=1&sn=6412ef20b7cbad3290cb907ad2f4b8d0&chksm=e9acceb8dedb47ae05d08ee1bf2859d4a670e49e8f2478924b43c0fd15934f3a6568ca11a97f&mpshare=1&scene=23&srcid=0305168SdFFRpSIHUKPILSpX#rd">点击“此处”关注<span style="color:red;">李明亮</span>微信公众号</a><br />下载免费精品学习资料<br />
+		<br /><a href="http://www.sanqqq.com/go.aspx?app=PEPDJLQJ"><div style="color:orange;">《英语点讲练》</div>小学、初中英语一条龙服务。高分全靠它！<br />安卓、苹果免费下载</a>
+    </div>
+    <div id='wx_logo' style='margin:0 auto;display:none;'>
+       <img src='http://www.sanqqq.com/test/pic/sc.jpg' />
+    </div>
+    <script>
+        var _hmt = _hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?fad1bc773239689677f624b2c99dab80";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</body>
+</html>
